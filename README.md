@@ -47,7 +47,7 @@ its own local memory, but they are able to communicate with each other.
 
 <p align="center"><img src ="./readme/1.jpg" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 1: Distributed memory example<br></b>
 </div> 
 
 Message Passing Interface (MPI) [1] is the programming environment used
@@ -67,16 +67,13 @@ assimilated to a dense matrix. The result matrix will be of the size m x k.
 
 <p align="center"><img src ="./readme/SpMM.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 2: Sparse-matrix fat-vector multiplication<br></b>
 </div> 
 
 The mathematical formula to compute a matrix multiplication is the following
 one:
 
 <p align="center"><img src ="./readme/formula.png" /><p align="center">
-<div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
-</div> 
 
 For i varying from 1 to m and j varying from 1 k.
 
@@ -144,7 +141,7 @@ some of the following methods.
 
 <p align="center"><img src ="./readme/COO.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 3: COO storage format<br></b>
 </div> 
 
 In the COO format the non-zero values are stored in an array. The index
@@ -153,7 +150,7 @@ different arrays.
 
 <p align="center"><img src ="./readme/CSR.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 4: CSR storage format<br></b>
 </div> 
 
 In the CSR format the non-zero values and its column index are stored in
@@ -230,9 +227,6 @@ one processor to the execution time in multiple processors. The speedup is
 defined as follows:
 
 <p align="center"><img src ="./readme/speedup.png" /><p align="center">
-<div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
-</div> 
 
 The time will be measured using the MPI Wtime() function.
 
@@ -280,7 +274,7 @@ for (int i = 0; i < npes; i++) {
 
 <p align="center"><img src ="./readme/Scatterv.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 5: Root process scatters sets of integers of different size<br></b>
 </div> 
 
 Moreover, MPI Scatterv and MPI Gatherv are often used in the different
@@ -306,39 +300,13 @@ how the sparse-matrix will be truncated, see figure 6.
 
 <p align="center"><img src ="./readme/pbDiv.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 6: Row wise split<br></b>
 </div> 
 
 Next, the rows of the sparse matrix are sent using MPI Scatterv, a collective
 communication. Once each process has computed the results the information
 is gathered in the root process using MPI Gatherv. The C++ code can be
-found in Appendix 7.4 and the pseudo code in Algorithm 5.
-
-The time complexity per processor is the following:
-
-<p align="center"><img src ="./readme/timeCompPerProc.png" /><p align="center">
-<div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
-</div> 
-
-With (m / npes + 1) being the maximum amount of data that a processor
-will receive.
-This method is not expected to be very efficient because it does not take
-advantage of the sparse-matrix. It results in a large number of zero values
-sent and computed, resulting in a loss of performance.
-
-#### Second Method
-
-The second parallel method uses the CSR storage format. The CSR is initialized
-by the root process. First, it calculates how to split the sparse-matrix by
-row with algorithm 4. Then, it calculates how to split the arrays nonZeros
-and columnIndex according to the row distribution. Also, it broadcasts the
-indexPointer array. To send the arrays nonZeros and columnIndex it uses
-one MPI Scatterv for each array. At this stage, each process computes the
-result with the CSR method. Finally, the MPI Gatherv is used to regroup
-the computed results back into the root. The sparse-matrix is truncated in
-the same way as in figure 6, the difference is that only the non-zero values
-are computed.
+found in Appendix 7.4 and the C++ code in Algorithm 5.
 
 ```cpp
 // Algorithm 5: First method
@@ -374,13 +342,71 @@ for (int i = 0; i < npes; i++) {
 MPI_Gatherv(sendBuffer);
 ```
 
+The time complexity per processor is the following:
+
+<p align="center"><img src ="./readme/timeCompPerProc.png" /><p align="center">
+
+With (m / npes + 1) being the maximum amount of data that a processor
+will receive.
+This method is not expected to be very efficient because it does not take
+advantage of the sparse-matrix. It results in a large number of zero values
+sent and computed, resulting in a loss of performance.
+
+#### Second Method
+
+The second parallel method uses the CSR storage format. The CSR is initialized
+by the root process. First, it calculates how to split the sparse-matrix by
+row with algorithm 4. Then, it calculates how to split the arrays nonZeros
+and columnIndex according to the row distribution. Also, it broadcasts the
+indexPointer array. To send the arrays nonZeros and columnIndex it uses
+one MPI Scatterv for each array. At this stage, each process computes the
+result with the CSR method. Finally, the MPI Gatherv is used to regroup
+the computed results back into the root. The sparse-matrix is truncated in
+the same way as in figure 6, the difference is that only the non-zero values
+are computed.
+
+```cpp
+// Algorithm 6: Second method
+// Require: nonZeros, columnIndex, receiveBufferNz[nonZero], receiveBufferCi[nonZero]
+
+// Step 1: Broadcast vector v
+MPI_Bcast(v);
+
+// Step 2: Scatter nonZeros array
+MPI_Scatterv(nonZeros);
+
+// Step 3: Scatter columnIndex array
+MPI_Scatterv(columnIndex);
+
+// Step 4: Initialize indexBuffer variable
+int indexBuffer = 0;
+
+// Step 5: Calculate sendBuffer values using the received non-zero values and column indices
+for (int i = 0; i < k; i++) {
+    int index = 0;
+    
+    for (int x = positions[rank]; x < positions[rank] + sendCount[rank]; x++) {
+        int temp = 0;
+        
+        for (int j = indexPointer[x]; j < indexPointer[x + 1]; j++) {
+            temp += receiveBufferNz[index] * v[receiveBufferCi[index]][i];
+            index += 1;
+        }
+        
+        sendBuffer[indexBuffer] = temp;
+        indexBuffer += 1;
+    }
+}
+
+// Step 6: Gather sendBuffer values at root
+MPI_Gatherv(sendBuffer);
+```
+
+
 
 The time complexity per processor is the following:
 
 <p align="center"><img src ="./readme/timeCompPerProc1.png" /><p align="center">
-<div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
-</div> 
 
 With nZavg being the average number of non-zero values per row.
 This method is expected to be the one with the best performances. Because
@@ -400,9 +426,6 @@ result matrix and the data is sent back to the root with MPI Gatherv.
 The time complexity per processor is the following:
 
 <p align="center"><img src ="./readme/timeCompPerProc2.png" /><p align="center">
-<div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
-</div> 
 
 This method is expected to be the one with the second best performance,
 because the data is sent with three MPI Send and MPI Recv for each process.
@@ -422,7 +445,7 @@ thousands.
 
 <p align="center"><img src ="./readme/accuracy.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 7: Results of the serial and parallel methods<br></b>
 </div> 
 
 Figure 7 shows the results of the serial and three parallel methods extracted
@@ -440,32 +463,32 @@ Three different sizes were chosen to compute the following results.
 
 <p align="center"><img src ="./readme/CommunicationSize1.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 8: Communication time with the small size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/CommunicationSize2.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 9: Communication time with the medium size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/CommunicationSize3.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 10: Communication time with the large size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/ComputationSize1.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 11: Computation time with the small size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/ComputationSize2.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 12: Computation time with the medium size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/ComputationSize3.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 13: Computation time with the large size<br></b>
 </div> 
 
 Figure 8, 9 and 10 show the communication cost of the three parallel methods
@@ -484,17 +507,17 @@ The other two are close to each other.
 
 <p align="center"><img src ="./readme/runTime1.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 14: Run time with the small size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/runTime2.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 15: Run time with the medium size<br></b>
 </div> 
 
 <p align="center"><img src ="./readme/runTime3.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 16: Run time with the large size<br></b>
 </div> 
 
 Figure 14, 15 and 16 show the run time of the three parallel implementations
@@ -502,7 +525,7 @@ with a varying number of processes and different matrix sizes.
 
 <p align="center"><img src ="./readme/serialPara.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 17: Serial run time and parallel run time with 2 processes<br></b>
 </div> 
 
 Figure 17 compares the run time of the serial implementation to the run
@@ -511,7 +534,7 @@ methods are faster for the medium and large sizes.
 
 <p align="center"><img src ="./readme/strongScala.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 18: Strong scalability with the large size<br></b>
 </div> 
 
 Figure 18 shows the strong scalability of the three parallel methods with the
@@ -519,7 +542,7 @@ large size.
 
 <p align="center"><img src ="./readme/weakScala.png" /><p align="center">
 <div align="center">
-<b>Figure 4.3: Solution of the Crank-Nicholson method compared to the analytical solution at t=0.5</b>
+<b>Figure 19: Weak scalability with 33M operations per process<br></b>
 </div> 
 
 Figure 19 shows the weak scalability of the three parallel methods with 33
