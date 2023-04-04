@@ -47,9 +47,9 @@ its own local memory, but they are able to communicate with each other.
 
 <p align="center"><img src ="./readme/1.jpg" /><p align="center">
 <div align="center">
-<b>Figure 1: Distributed memory example<br></b>
+<b>Figure 1: Distributed memory example</b>
 </div> 
-
+<br>
 Message Passing Interface (MPI) [1] is the programming environment used
 for such distributed-memory systems. It was created in the 1990s and it
 allows the processes to communicate with each other by sending and receiving
@@ -69,7 +69,7 @@ assimilated to a dense matrix. The result matrix will be of the size m x k.
 <div align="center">
 <b>Figure 2: Sparse-matrix fat-vector multiplication<br></b>
 </div> 
-
+<br>
 The mathematical formula to compute a matrix multiplication is the following
 one:
 
@@ -143,7 +143,7 @@ some of the following methods.
 <div align="center">
 <b>Figure 3: COO storage format<br></b>
 </div> 
-
+<br>
 In the COO format the non-zero values are stored in an array. The index
 of the row and of the column of each non-zero element are stored in two
 different arrays.
@@ -152,7 +152,7 @@ different arrays.
 <div align="center">
 <b>Figure 4: CSR storage format<br></b>
 </div> 
-
+<br>
 In the CSR format the non-zero values and its column index are stored in
 two arrays. The third array is composed of pointers to the index of the non
 zero value, see Figure 4.
@@ -276,7 +276,7 @@ for (int i = 0; i < npes; i++) {
 <div align="center">
 <b>Figure 5: Root process scatters sets of integers of different size<br></b>
 </div> 
-
+<br>
 Moreover, MPI Scatterv and MPI Gatherv are often used in the different
 methods. MPI Scatterv is an extension of MPI Scatter, it enables to scatter
 data of different sizes between all the processes. MPI Gatherv is the inverse
@@ -302,7 +302,7 @@ how the sparse-matrix will be truncated, see figure 6.
 <div align="center">
 <b>Figure 6: Row wise split<br></b>
 </div> 
-
+<br>
 Next, the rows of the sparse matrix are sent using MPI Scatterv, a collective
 communication. Once each process has computed the results the information
 is gathered in the root process using MPI Gatherv. The C++ code can be
@@ -447,7 +447,7 @@ thousands.
 <div align="center">
 <b>Figure 7: Results of the serial and parallel methods<br></b>
 </div> 
-
+<br>
 Figure 7 shows the results of the serial and three parallel methods extracted
 on a csv file.
 
@@ -465,32 +465,32 @@ Three different sizes were chosen to compute the following results.
 <div align="center">
 <b>Figure 8: Communication time with the small size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/CommunicationSize2.png" /><p align="center">
 <div align="center">
 <b>Figure 9: Communication time with the medium size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/CommunicationSize3.png" /><p align="center">
 <div align="center">
 <b>Figure 10: Communication time with the large size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/ComputationSize1.png" /><p align="center">
 <div align="center">
 <b>Figure 11: Computation time with the small size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/ComputationSize2.png" /><p align="center">
 <div align="center">
 <b>Figure 12: Computation time with the medium size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/ComputationSize3.png" /><p align="center">
 <div align="center">
 <b>Figure 13: Computation time with the large size<br></b>
 </div> 
-
+<br>
 Figure 8, 9 and 10 show the communication cost of the three parallel methods
 with a varying number of processes and different matrix sizes. It can be
 observed that for the small and medium sizes that the communication cost
@@ -509,17 +509,17 @@ The other two are close to each other.
 <div align="center">
 <b>Figure 14: Run time with the small size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/runTime2.png" /><p align="center">
 <div align="center">
 <b>Figure 15: Run time with the medium size<br></b>
 </div> 
-
+<br>
 <p align="center"><img src ="./readme/runTime3.png" /><p align="center">
 <div align="center">
 <b>Figure 16: Run time with the large size<br></b>
 </div> 
-
+<br>
 Figure 14, 15 and 16 show the run time of the three parallel implementations
 with a varying number of processes and different matrix sizes.
 
@@ -527,7 +527,7 @@ with a varying number of processes and different matrix sizes.
 <div align="center">
 <b>Figure 17: Serial run time and parallel run time with 2 processes<br></b>
 </div> 
-
+<br>
 Figure 17 compares the run time of the serial implementation to the run
 time of the parallel methods with 2 processes. It stands out that the parallel
 methods are faster for the medium and large sizes.
@@ -536,7 +536,7 @@ methods are faster for the medium and large sizes.
 <div align="center">
 <b>Figure 18: Strong scalability with the large size<br></b>
 </div> 
-
+<br>
 Figure 18 shows the strong scalability of the three parallel methods with the
 large size.
 
@@ -544,7 +544,7 @@ large size.
 <div align="center">
 <b>Figure 19: Weak scalability with 33M operations per process<br></b>
 </div> 
-
+<br>
 Figure 19 shows the weak scalability of the three parallel methods with 33
 million operations per process. It was not possible to compute the third
 method with 8 and 16 processes because of memory management.
